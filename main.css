@@ -5,3 +5,8 @@ h1 {
 .card {
   margin-bottom: 20px;
 }
+
+pre {
+  background: #f9f9f9;
+  padding-top: 10px;
+}

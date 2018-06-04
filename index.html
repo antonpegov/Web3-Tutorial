@@ -29,7 +29,7 @@
         </p>
         <p class="card-text">Web3 позволяет нам абстрагироваться от внутренней механики Ethereum и работать с сетью и смарт-контрактами так, будто это обычные javascript-объекты.
           Если вы еще не знаете, что такое смарт-контракты, то можете представить их как некие классы - на самом деле это действительно классы языка Solidium,
-          который, кстати, внешне очень похож на javascript. Процесс выглядит следующим образом: rод смарт-контракта пишется на Solidium, потом компилируется в байт-код и этот байт-код записывается в сеть.
+          который, кстати, внешне очень похож на javascript. Процесс выглядит следующим образом: код смарт-контракта пишется на Solidium, потом компилируется в байт-код и этот байт-код записывается в сеть.
           Размещение (другими словами деплой, запись) контракта в сети можно сравнить с созданием экземпляра объекта в javascript.
           Как вновь созданный объект javascript получает свой адрес в "куче", так размещённый нами контракт получает свой адрес в сети Ethereum,
           используя который мы теперь можем вызывать его методы и читать свойства. Ну почти. На самом деле для всех публичных свойств автоматически создаются геттеры -
@@ -50,7 +50,8 @@
         </p>
         <p class="card-text">Полезные ссылки:</p>
         <p class="card-text"><a href="https://www.youtube.com/watch?v=92pdrRH_VGA" target=_blank>Выступление автора библиотеки Fabian Vogelsteller</a></p>
-        <p class="card-text"><a href="https://www.youtube.com/watch?v=92pdrRH_VGA" target=_blank>Подробный туториал по раборе со смарт-контрактами Ethereum</a></p>
+        <p class="card-text"><a href="https://coursetro.com/posts/code/99/Interacting-with-a-Smart-Contract-through-Web3.js-(Tutorial)" target=_blank>Подробный туториал по раборе со смарт-контрактами Ethereum</a></p>
+        <p class="card-text"><a href="https://web3js.readthedocs.io/en/1.0/" target=_blank>Полная документация библиотеки web3.js</a></p>
       </div>
     </div>
 
@@ -62,33 +63,94 @@
         <p class="card-text">Импортируйте удобным для вас способом библиотеку <a href="https://github.com/ethereum/web3.js/tree/1.0">web3</a>. Мы использовали этот <a href="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/">CDN</a>.</p>
         <p class="card-text">Теперь давайте подключимся к сети Ethereum, для чего "попросим" Метамаск поделиться с нами своим провайдером: </p>
         <pre class="prettyprint">
-          var w3 = checkAndInstantiateWeb3();
+          // Web3 - класс, который мы импортировали с библиотекой web3
+          // window.web3 - прокси, созданный Метамаском. Из него мы сможем достать так нужного нам провайдера.
           function checkAndInstantiateWeb3() {
             try {
               if (window.web3 !== 'undefined') {
                 console.log("Using Metamask's web3 provider");
-                return new web3(window.web3.currentProvider);
+                return new Web3(window.web3.currentProvider);
               } else {
                 console.warn('No web3 detected. Falling back to http://localhost:8545.');
-                return new this.Web3(new this.Web3.providers.HttpProvider('http://localhost:8545'));
+                return new Web3(new this.Web3.providers.HttpProvider('http://localhost:8545'));
               }
             } catch(e) {
               console.error("Sorry, can't find any web3 provider:", e.message)
             }
           }
         </pre>
-        <p class="card-text">Здесь мы пробуем найти Метамаск, а если его нет, пытаемся подключиться к локальному узлу Ethereum и взять провайдера там.</p>
+        <p class="card-text">Здесь мы пробуем найти Метамаск, а если его нет, пытаемся подключиться к локальному узлу Ethereum и взять провайдер оттуда.</p>
       </div>
     </div>
 
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">2. Подключение.</h5>
+        <p class="card-text">
+          В данном туториале мы не будем подробно останавливаться на процессе написания 
+          и компиляции самого контракта, для этого просим вас обратиться к углубленному туториалу, 
+          ссылка на который была дана в первом пункте. Тем не менее, давайте для тренировки задеплоим 
+          контракт из этого проекта: <a href="https://github.com/bankex/ERC20DividendsToken">ERC20DividendsToken</a>.</p>
+          В кратце, данный смарт-контракт представляет собой некую, определяемую при деплое, 
+          коллекцию из нескольких наборов токенов (стандартные сущности, которыми можно обмениваться), 
+          которые можно переводить длугим пользователям. Но главное, на них можно 
+          начислять дивиденды в эфирах, и все, кто имеет эти токены в своём Ethereum-кошельке, 
+          получат свою долю пропорционально количеству имеющихся токенов. Если проводить аналогию с реальным миром, 
+          это похоже на выпуск акций - представьте, что размещая контракт в сети, вы сразу выпускаете сдандартные, 
+          привилегированные и ещё какие-нибудь акции своей компании, после чего можете их передавать другим лицам и начислять на них дивиденды. 
+        </p>
+        <p class="card-text">
+          Итак, мы опустим процесс компиляции 
+          и сразу возьмём байт-код скомпилированного контракта чтобы задеплоить его в сеть с желаемыми параметрами. 
+          Если вы захотите сами получить байткод и abi(см.ниже что это), то самый простой путь - забрать себе проект, 
+          установить npm пакет 'remixd' и открыть доступ к папке с контрактами командой 'remixd -s contracts'. Затем
+          открыть в браузере онлайн IDE для Solidity <a href="http://remix.ethereum.org" target="_blank">Remix</a>, 
+          подключиться к открытой ранее папке (иконка с цепью), открыть файл ERC20DividendsToken.sol, 
+          скомпилировать кнопкой 'Start to compile' (убедившись что в селекте выбран правильный контракт), 
+          потом нажать кнопку 'Details'. В появившемся окошке нас интересуют две сущности - BYTECODE, 
+          а именно подраздел "object", копируем его значение и сохраняем в переменную. Теперь находим раздел ABI 
+          и сохраняем его в другую переменную. Abi позволит web3 "расшифровать" параметры методов нашего скомпилированного контракта, 
+          иначе он для нас останется бессвязным набором символов. Все перечисленные выше действия мы уже произвели и сохранили
+          байткод и аби в файле data.js
+        </p>
+        <p class="card-text">
+          Итак, используя уже созданниый инстранс web3, "заряженный" провайдером, взятым у Метамаска, создаём инстанс контракта:
+        </p>
+        <pre class="prettyprint">
+            $(document).ready((x) => {
+              try {
+                const w3 = checkAndInstantiateWeb3();
+                const contract = new w3.eth.Contract(abi);
+              } catch(err) {
+                console.error(err);
+              }
+            })
+        </pre>
+        <p class="card-text">Если бы у нас уже был задеплоенный контракт, 
+          то нам было бы дастаточно указать его адрес вторым параметром метода Contract(), но мы хотим сами его задеплоить и
+           для этого используем имеющийся у нас байткод и метод deploy():
+        </p>
+        <pre class="prettyprint">
+          myContract.deploy(options);
+        </pre>
+      </div>
+    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="js/data.js"></script>
   <script src="js/init.js"></script>
   <script src="js/connect.js"></script>
+
   <script>
     $(document).ready((x) => {
-      var w3 = checkAndInstantiateWeb3();
+      try {
+        const w3 = checkAndInstantiateWeb3();
+        const myContract = new w3.eth.Contract(abi);
+        myContract.deploy(options);
+      } catch(err) {
+        console.error(err);
+      }
     })
   </script>
 
