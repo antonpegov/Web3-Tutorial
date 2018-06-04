@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Добро пожаловать в Ethereum )</title>
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="main.css">
+  <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>Вводная инструкция по использованю Web3 v1.0</h1>
+
+    <div class="card">
+      <!-- <img class="card-img-top" src=".../100px180/" alt="Card image cap"> -->
+      <div class="card-body">
+        <h5 class="card-title">1. Введение</h5>
+        <p class="card-text"></p>Web3.js - официальная библиотека для работы с блокчейном Ethereum. В версии 1.0 добавлены важные и полезные фичи, 
+          делающую работу с библиотекой удобной и приятной: добавлены расширенные промисы (PromiEvents), 
+          появилась возможность подписываться на события (к сожалению не поддерживатся текущей версией Metamask),
+          произошло структурирование на функциональные модули и многое другое. </p>
+        <p class="card-text">Для подключения к блокчейну, мы должны предоставить библиотеке web3 так называемого провайдера - объект, который непосредственно будет обмениваться данными 
+          с узлом Ethereum на машинном языке, в который web3 переведёт наши команды. Есть несколько способов получить этого провайдера: 
+          установить браузерное раcшиение <a href="https://metamask.io/">Metamask</a> (работает как прокси между вами и вашим адресом в сети, позволяя не инсталлировать свой полноценный узел) 
+          или установить на локальную машину узел Ethereum (или его эмулятор, например <a href="http://truffleframework.com/ganache/">Ganache</a>)</p>
+          В данной инструкции мы рассмотрим первый, самый простой вариант.
+        <p class="card-text">Полезные ссылки:</p> 
+        <p class="card-text"><a href="https://www.youtube.com/watch?v=92pdrRH_VGA" target=_blank>Выступление автора библиотеки Fabian Vogelsteller</a></p>
+        <p class="card-text"><a href="https://www.youtube.com/watch?v=92pdrRH_VGA" target=_blank>Подробный туториал по раборе со смартконтрактами Ethereum</a></p>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">2. Настройка</h5>
+        <p class="card-text" id="text1"></p>
+        
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="js/init.js"></script>
+  <script>
+    $(document).ready((x) => {
+      $('p#text1')[0].innerText = test;
+    })
+  </script>
+
+</body>
+
+</html>
