@@ -10,3 +10,12 @@ pre {
   background: #f9f9f9;
   padding-top: 10px;
 }
+
+.spinner {
+  width: 20px;
+  display: none;
+}
+
+.spinner.spin {
+  display: inline;
+}
