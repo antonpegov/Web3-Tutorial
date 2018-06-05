@@ -131,46 +131,53 @@
         </pre>
         <p class="card-text">Если бы у нас уже был задеплоенный контракт, 
           то нам было бы дастаточно указать его адрес вторым параметром метода Contract(), но мы хотим сами его задеплоить и
-           для этого используем имеющийся у нас байткод и метод deploy(). Перед деплоем убедитесь, что вы вошли в Метамаск и 
-           переключились на тестовую сеть Rinkeby!
+          для этого используем имеющийся у нас байткод и метод deploy(). Перед деплоем убедитесь, что вы вошли в Метамаск и 
+          переключились на тестовую сеть Rinkeby!
         </p>
         <pre class="prettyprint">
-            $('#deploy').click(async() => {
-              [myAddress] = await w3.eth.getAccounts();                     // Получаем адреса кошелька, выбранного в Метамаске
-              const transaction = myContract.deploy({data: bytecode});      // Подгатавливаем транзакцию
-              transaction.on('transactionHash', onTransactionHashReseived)  // Вешаем на транзакцию обработчика события 'transactionHash'
-              transaction.send({from: myAddress}).then(newContractInstance => {
-                alert(newContractInstance.options.address)
-              });
+            $('#deployBtn').click(async() => {
+              try {
+                resetContractData();                                          // Очищаем старые данные
+                $('#deployBtn')[0].disabled = true;                           // Блокируем кнопку
+                const accounts = await w3.eth.getAccounts();                  // Получаем адреса кошелька, выбранного в Метамаске
+                myAddress = accounts[0];                                      
+                if(!accounts[0]) { alert('Кошелёк не найден, войдите в Метамаск и создайте кошелёк!'); return; }
+                const transaction = myContract.deploy({data: bytecode});      // Формируем транзакцию
+                const promiEvent = transaction.send({from: myAddress});       // Отправляем транзакцию на запись в Блокчейн
+                promiEvent.on('transactionHash', onTransactionHashReceived);  // Вешаем на промивент обработчик события 'transactionHash'
+                promiEvent.on('error', resetVisualEffects);                   // Сбросить блокировки, если пользователь отменил транзакцию
+                promiEvent.then(newContractInstance => {
+                  myContract = newContractInstance;                                   // Обновляем нашу абстракцию контракта
+                  $('#contractAddress a')[0].innerText = myContract.options.address;  // Показываем адрес задеплоенного контракта в сети
+                  $('#contractAddress a')[0].href = 'https://rinkeby.etherscan.io/address/' + myContract.options.address;
+                  resetVisualEffects();
+                });
+              } catch(err) {
+                resetVisualEffects();
+                console.error(err);
+              }
             })
         </pre>
-        <button id="deploy">Deploy Contract</button>
+        <p class="card-text">
+          Код вспомогательных функций resetContractData(), onTransactionHashReceived(), resetVisualEffects() можно посмотреть в файле connect.js, 
+          разберём процесс деплоя подробнее. Любая запись информации в блокчейн происходит посредством формирования и отправки специального объекта,
+          называемого транзакцией, который майнеры помещают в новый блок. Отправка производится методом send(), который возвращает объект класса PromiEvent, 
+          позволяющий не только ждать окончания майнинга нового блока, но и контролировать этот процесс. Майнеры получают вашу транзакцию и, 
+          если она их устраивает, начинают записывать её в следующий блок, предварительно вернув вам "расписку в получении" - transaction hash. 
+          По окончаню процесса майнинга блока PromEvent резолвится и мы получаем наш новенький только что задеплоенный контракт.
+        </p>
+        <p><button id="deployBtn">Deploy Contract</button> <img id="deploySpinner" src="./assets/cool-spinner.gif" class="spinner" alt="spinner"></p> 
+        <p class="card-text" id="deployHash"><i>Transaction hash: </i><b><a target="_blank"></a></b></p>
+        <p class="card-text" id="contractAddress"><i>Contract address: </i><b><a target="_blank"></a></b></p>
+        <p class="card-text">* данные по ссылкам могут отображаться с задержкой</p>
       </div>
     </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/init.js"></script>
   <script src="js/connect.js"></script>
-
-  <script>
-    var w3, myAddress, myContract;
-    $(document).ready((x) => {
-      try {
-        w3 = checkAndInstantiateWeb3();
-        myContract = new w3.eth.Contract(abi);        
-      } catch(err) {
-        console.error(err);
-      }
-    })
-    $('#deploy').click(async() => {
-      [myAddress] = await w3.eth.getAccounts();
-      myContract.deploy({data: bytecode}).send({from: myAddress}).then(newContractInstance => {
-        alert(newContractInstance.options.address)
-      });
-    })
-  </script>
+  <script src="js/main.js"></script>
 
 </body>
 
