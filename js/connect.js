@@ -3,39 +3,44 @@
 
 var w3, myAddress, myContract;
 
-// CONNECT TO BLOCKCHAIN
-$(document).ready((x) => {
-  try {
-    w3 = checkAndInstantiateWeb3();
-    myContract = new w3.eth.Contract(abi);
-  } catch(err) {
-    console.error(err);
-  }
+$(document).ready(() => {
+  w3 = checkAndInstantiateWeb3();
+  connect();
 })
 
-// DEPLOY CONTRACT
-$('#deployBtn').click(async() => {
+// DEPLOY NEW CONTRACT
+$('#deployBtn').click(() => {
   try {
     resetContractData();                                          // Очищаем старые данные
     $('#deployBtn')[0].disabled = true;                           // Блокируем кнопку
-    const accounts = await w3.eth.getAccounts();
-    if(!accounts[0]) { alert('Кошелёк не найден, войдите в Метамаск и создайте кошелёк!'); return; }
-    myAddress = accounts[0];                                      // Получаем адреса кошелька, выбранного в Метамаске
-    const transaction = myContract.deploy({data: bytecode});      // Подгатавливаем транзакцию
+    const transaction = myContract.deploy({ data: bytecode  });   // Подгатавливаем транзакцию
     const promiEvent = transaction.send({from: myAddress});       // Отправляем транзакцию на запись в Блокчейн
     promiEvent.on('transactionHash', onTransactionHashReceived);  // Вешаем на промивент обработчик события 'transactionHash'
-    promiEvent.on('error', resetVisualEffects);                   // Сбросить блокировки, если пользователь отменил транзакцию
+    promiEvent.on('error', resetVisualEffects);                   // Сбрасываем блокировки, если пользователь отменил транзакцию
     promiEvent.then(newContractInstance => {
-      myContract = newContractInstance;                           // Обновляем нашу абстракцию контракта
-      $('#contractAddress a')[0].innerText = myContract.options.address; // Показываем адрес задеплоенного контракта в сети
+      myContract = newContractInstance;                                   // Обновляем нашу абстракцию контракта
+      $('#contractAddress a')[0].innerText = myContract.options.address;  // Показываем адрес задеплоенного контракта в сети
       $('#contractAddress a')[0].href = 'https://rinkeby.etherscan.io/address/' + myContract.options.address;
+      $('._saveAddressToLocalStorage').css('display','inline');   // Показать кнопку сохранения адреса в local storage
       resetVisualEffects();
     });
-  } catch(err) {
+  } catch (err) {
     resetVisualEffects();
     console.error(err);
   }
 })
+
+
+// INITIALISATION
+async function connect() {
+  try {
+    const accounts = await w3.eth.getAccounts();
+    myAddress = accounts[0]; // Получаем адрес кошелька, выбранного в Метамаске
+    myContract = new w3.eth.Contract(abi);
+    if (!myAddress) { alert('Кошелёк не найден, войдите в Метамаск и создайте кошелёк!'); }
+
+  } catch (err) { console.error(err); }
+}
 
 function checkAndInstantiateWeb3() {
   try {
@@ -46,20 +51,20 @@ function checkAndInstantiateWeb3() {
       console.warn('No web3 detected. Falling back to http://localhost:8545.');
       return new Web3(new this.Web3.providers.HttpProvider('http://localhost:8545'));
     }
-  } catch(e) {
+  } catch (e) {
     console.error("Sorry, can't find any web3 provider:", e.message)
   }
 }
 
 function onTransactionHashReceived(hash) {
-  $('#deploySpinner')[0].classList.add('spin');              // Показываем спиннер
-  $('#deployHash a')[0].innerText = hash;                    // Показываем идентификатор транзакции
+  $('#deploySpinner')[0].classList.add('spin'); // Показываем спиннер
+  $('#deployHash a')[0].innerText = hash; // Показываем идентификатор транзакции
   $('#deployHash a')[0].href = 'https://rinkeby.etherscan.io/tx/' + hash;
 }
 
 function resetVisualEffects() {
-  $('#deploySpinner')[0].classList.remove('spin');            // Убираем спинер
-  $('#deployBtn')[0].disabled = false;                        // Разблокируем кнопку
+  $('#deploySpinner')[0].classList.remove('spin'); // Убираем спинер
+  $('#deployBtn')[0].disabled = false; // Разблокируем кнопку
 }
 
 function resetContractData() {

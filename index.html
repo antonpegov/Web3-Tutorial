@@ -16,7 +16,7 @@
 <body>
   <div class="container">
 
-    <h1>Вводная инструкция по использованю Web3 v1.0</h1>
+    <h1>Интерактивная инструкция по использованю Web3 v1.0</h1>
 
     <div class="card">
       <!-- <img class="card-img-top" src=".../100px180/" alt="Card image cap"> -->
@@ -28,18 +28,18 @@
           произошло структурирование на функциональные модули и многое другое.
         </p>
         <p class="card-text">Web3 позволяет нам абстрагироваться от внутренней механики Ethereum и работать с сетью и смарт-контрактами так, будто это обычные javascript-объекты.
-          Если вы еще не знаете, что такое смарт-контракты, то можете представить их как некие классы - на самом деле это действительно классы языка Solidium,
-          который, кстати, внешне очень похож на javascript. Процесс выглядит следующим образом: код смарт-контракта пишется на Solidium, потом компилируется в байт-код и этот байт-код записывается в сеть.
-          Размещение (другими словами деплой, запись) контракта в сети можно сравнить с созданием экземпляра объекта в javascript.
+          Если вы еще не знаете, что такое смарт-контракты, то можете представить их как некие классы, экземпляры которых живут в сети Ethereum - на самом деле это действительно классы языка Solidium,
+          который, внешне очень похож на javascript. Процесс выглядит следующим образом: код смарт-контракта пишется на Solidium, потом компилируется в байт-код и этот байт-код записывается в сеть.
           Как вновь созданный объект javascript получает свой адрес в "куче", так размещённый нами контракт получает свой адрес в сети Ethereum,
           используя который мы теперь можем вызывать его методы и читать свойства. Ну почти. На самом деле для всех публичных свойств автоматически создаются геттеры -
           одноимённые методы для получения значения этих свойств. Любое обращение к смарт-контракту происходит через вызов его методов. И теперь самое важное - есть два типа методов:
           те, которые меняют состояние смарт-контракта и те, которые не меняют. Первые требуют на своё выполнение затрат эфира, т.к. приводят к записи данных в сеть Ethereum,
           а вторые совершенно бесплатны, их ещё называют view-методы. Как упоминалось выше, они автоматически создаются для всех публичных свойств смарт-контракта.
           Как видите, всё просто, нам остаётся подключиться к смарт-контракту, получив от web3 javascript-объект, представляющий его абстракцию.
-          У этого объекта есть свойство methods, которое представляет набор методов смарт-контракта. View-методы вызываем методом .call(), а остальные методом .send().
-          Эти методы возвращают нам объект класса PromiEvent - мутант промиса и эвента. Смысл в том, что в случае записи данных этот промис разрешится только тогда, когда данные будут записаны в сеть,
-          ждать чего может прийтись от десатков до сотен секунд. В это время мы можем слушать различные события, происходящие в процессе выполнении нашего метода и реагировать на них.
+          У этого объекта есть свойство methods, которое представляет набор методов смарт-контракта. View-методы вызываются методом .call(), остальные методом .send().
+          Эти (не-view) методы возвращают нам объект класса PromiEvent - мутант промиса и ивент-эмиттера. Смысл в том, что в случае записи данных этот промис разрешится только тогда,
+          когда данные будут записаны в сеть, ждать чего может прийтись от десатков до сотен секунд.
+          В это время мы можем слушать различные события, происходящие в процессе выполнении нашего метода и реагировать на них.
         </p>
         <p class="card-text">Для подключения к блокчейну, мы должны предоставить библиотеке web3 так называемый провайдер - сущность, которая непосредственно будет обмениваться данными
           с узлом Ethereum на машинном языке, в который web3 переведёт наши команды. Есть несколько способов получить этого провайдера:
@@ -87,51 +87,57 @@
       <div class="card-body">
         <h5 class="card-title">2. Подключение.</h5>
         <p class="card-text">
-          В данном туториале мы не будем подробно останавливаться на процессе написания 
-          и компиляции самого контракта, за этой информацией просим вас обратиться к углубленному туториалу, 
-          ссылка на который была дана в первом разделе. Тем не менее, давайте для тренировки давайте задеплоим 
+          В данном туториале мы не будем подробно останавливаться на процессе написания
+          и компиляции самого контракта, за этой информацией просим вас обратиться к углубленному туториалу,
+          ссылка на который была дана в первом разделе. Тем не менее, давайте для тренировки давайте задеплоим
           контракт из этого проекта: <a href="https://github.com/bankex/ERC20DividendsToken">ERC20DividendsToken</a>.</p>
-          В кратце, данный смарт-контракт, далее для удобства будем истользовать термин'класс', определяет некий объект, 
-          которым можно обмениваться с другими пользователями. Если посмотреть код, вы увидите, что эти характеристики 
-          определяются в базовом классе ERC20Token (файл ERC20Token.sol). Да, классы в Solidity поддерживают наследование. 
-          Класс ERC20DividendsToken расширяет ERC20Token функционалом, позволяющим начислять на нашу сущность дивиденды в эфирах, 
-          так что все, кто имеет эти токены в своём Ethereum-кошельке, получает свою долю пропорционально количеству имеющихся токенов. 
-          Если проводить аналогию с реальным миром, это фактически выпуск акций - представьте, что размещая контракт в сети, 
-          вы выпускаете определённое количество акции своей компании, после чего можете их передавать другим лицам и начислять на них дивиденды. 
-          Наконец в классе VendingToken, унаследованном от ERC20DividendsToken, мы выпускаем 100 наших акций-токенов. 
-          Назначение данного смарт-контракта - "токенизация" некоего бизнес-актива, причём 1 токен представляет 1% стоимости этого актива.
-          Этот контракт мы и будем размещать в сети. 
+          В кратце, данный смарт-контракт (далее для удобства будем истользовать термин'класс') определяет некий объект,
+          которым можно обмениваться с другими пользователями. Если посмотреть код, вы увидите, что эти характеристики
+          определяются в базовом классе ERC20Token (файл ERC20Token.sol) - классы в Solidity поддерживают наследование.
+          Класс ERC20DividendsToken расширяет ERC20Token функционалом, позволяющим начислять на нашу сущность дивиденды в эфирах,
+          так что все, кто имеет эти токены в своём Ethereum-кошельке, получает свою долю пропорционально количеству имеющихся токенов.
+          Если проводить аналогию с реальным миром, это фактически выпуск акций - представьте, что размещая контракт в сети,
+          вы выпускаете определённое количество акции своей компании, после чего можете их передавать другим лицам и начислять на них дивиденды.
+          Наконец, в классе VendingToken, унаследованном от ERC20DividendsToken, мы выпускаем 100 наших акций-токенов.
+          Назначение данного смарт-контракта - "токенизация" некоего актива, причём 1 токен представляет 1% стоимости этого актива.
         </p>
         <p class="card-text">
-          Мы опустим процесс компиляции и сразу возьмём байт-код скомпилированного контракта, чтобы задеплоить его в сеть. 
-          Если вы захотите сами получить байткод и ABI(Application Binary Interface), то самый простой путь - забрать себе проект, 
+          Мы опустим процесс компиляции и сразу возьмём байт-код скомпилированного контракта, чтобы задеплоить его в сеть.
+          Если вы решите сами получить необходимые для деплоя байткод и ABI(Application Binary Interface), то самый простой путь - забрать себе проект,
           установить npm пакет 'remixd' и открыть доступ к папке с контрактами командой 'remixd -s contracts', затем
-          открыть в браузере онлайн IDE для Solidity <a href="http://remix.ethereum.org" target="_blank">Remix</a>, 
-          подключиться к открытой ранее папке (иконка с цепью), открыть файл VendingToken.sol, 
-          скомпилировать кнопкой 'Start to compile' (убедитесь, что в селекте выбран правильный контракт), 
-          потом нажать кнопку 'Details'. В появившемся окошке нас интересуют две сущности - 'BYTECODE', 
-          а именно подраздел "object", копируем его значение и сохраняем в переменную. Теперь находим раздел 'ABI' 
-          и сохраняем его в другую переменную. ABI позволит web3 "расшифровать" параметры методов нашего скомпилированного контракта, 
+          открыть в браузере онлайн IDE для Solidity <a href="http://remix.ethereum.org" target="_blank">Remix</a>,
+          подключиться к открытой ранее папке (иконка с цепью), открыть файл VendingToken.sol,
+          скомпилировать его кнопкой 'Start to compile' (убедитесь, что в селекте выбран правильный контракт),
+          потом нажать кнопку 'Details'. В появившемся всплывающем окошке нас интересуют две сущности - 'BYTECODE',
+          а именно подраздел "object", копируем его значение и сохраняем в переменную. Теперь находим раздел 'ABI'
+          и сохраняем его в другую переменную. ABI позволит web3 "расшифровать" параметры методов нашего скомпилированного контракта,
           иначе он для нас останется бессвязным набором символов. Все вышеперечисленные действия мы уже произвели и сохранили
           байткод и ABI в файле data.js
         </p>
         <p class="card-text">
-          Итак, используя уже созданниый инстранс web3, "заряженный" провайдером, взятым у Метамаска, создадим инстанс абстракции контракта:
+          Итак, используя уже созданниый инстранс web3, "заряженный" провайдером, взятым у Метамаска,
+          создадим инстанс абстракции контракта и получим от Метамаска адрес текущего кошелька (понадобится далее):
         </p>
         <pre class="prettyprint">
             var w3, myAddress, myContract;
-            $(document).ready((x) => {
-              try {
-                w3 = checkAndInstantiateWeb3();
-                myContract = new w3.eth.Contract(abi);        
-              } catch(err) {
-                console.error(err);
-              }
+
+            $(document).ready(() => {
+              w3 = checkAndInstantiateWeb3(); // наш "заряженный" инстанс web3
+              connect();
             })
+
+            async function connect() {
+              try {
+                myContract = new w3.eth.Contract(abi);
+                const accounts = await w3.eth.getAccounts();
+                myAddress = accounts[0]; // Получаем адрес кошелька, выбранного в Метамаске
+                if (!myAddress) { alert('Кошелёк не найден, войдите в Метамаск и создайте кошелёк!'); }
+              } catch (err) { console.error(err); }
+            }
         </pre>
-        <p class="card-text">Если бы у нас уже был задеплоенный контракт, 
-          то нам было бы дастаточно указать его адрес вторым параметром метода Contract(), но мы хотим сами его задеплоить и
-          для этого используем имеющийся у нас байткод и метод deploy(). Перед деплоем убедитесь, что вы вошли в Метамаск и 
+        <p class="card-text">Если бы у нас уже был задеплоенный контракт,
+          то было бы дастаточно указать его адрес вторым параметром метода Contract(), но мы хотим сами его задеплоить и
+          для этого используем имеющийся у нас байткод и метод deploy(). Перед деплоем убедитесь, что вы вошли в Метамаск и
           переключились на тестовую сеть Rinkeby!
         </p>
         <pre class="prettyprint">
@@ -140,7 +146,7 @@
                 resetContractData();                                          // Очищаем старые данные
                 $('#deployBtn')[0].disabled = true;                           // Блокируем кнопку
                 const accounts = await w3.eth.getAccounts();                  // Получаем адреса кошелька, выбранного в Метамаске
-                myAddress = accounts[0];                                      
+                myAddress = accounts[0];
                 if(!accounts[0]) { alert('Кошелёк не найден, войдите в Метамаск и создайте кошелёк!'); return; }
                 const transaction = myContract.deploy({data: bytecode});      // Формируем транзакцию
                 const promiEvent = transaction.send({from: myAddress});       // Отправляем транзакцию на запись в Блокчейн
@@ -159,17 +165,158 @@
             })
         </pre>
         <p class="card-text">
-          Код вспомогательных функций resetContractData(), onTransactionHashReceived(), resetVisualEffects() можно посмотреть в файле connect.js, 
+          Код вспомогательных функций resetContractData(), onTransactionHashReceived(), resetVisualEffects() можно посмотреть в файле connect.js,
           разберём процесс деплоя подробнее. Любая запись информации в блокчейн происходит посредством формирования и отправки специального объекта,
-          называемого транзакцией, который майнеры помещают в новый блок. Отправка производится методом send(), который возвращает объект класса PromiEvent, 
-          позволяющий не только ждать окончания майнинга нового блока, но и контролировать этот процесс. Майнеры получают вашу транзакцию и, 
-          если она их устраивает, начинают записывать её в следующий блок, предварительно вернув вам "расписку в получении" - transaction hash. 
+          называемого транзакцией, который майнеры помещают в новый блок. Отправка производится методом send(), который возвращает объект класса PromiEvent,
+          позволяющий не только ждать окончания майнинга нового блока, но и контролировать этот процесс. Майнеры получают вашу транзакцию и,
+          если она их устраивает, начинают записывать её в следующий блок, предварительно вернув вам "расписку в получении" - transaction hash.
           По окончаню процесса майнинга блока PromEvent резолвится и мы получаем наш новенький только что задеплоенный контракт.
         </p>
-        <p><button id="deployBtn">Deploy Contract</button> <img id="deploySpinner" src="./assets/cool-spinner.gif" class="spinner" alt="spinner"></p> 
+        <p><button id="deployBtn">Деплой контракта</button> <img id="deploySpinner" src="./assets/cool-spinner.gif" class="spinner" alt="spinner"></p>
         <p class="card-text" id="deployHash"><i>Transaction hash: </i><b><a target="_blank"></a></b></p>
-        <p class="card-text" id="contractAddress"><i>Contract address: </i><b><a target="_blank"></a></b></p>
+        <p class="card-text" id="contractAddress"><i>Contract address: </i><b><a target="_blank"></a></b><button class="_saveAddressToLocalStorage">Сохранить адрес контракта</button></p>
         <p class="card-text">* данные по ссылкам могут отображаться с задержкой</p>
+        <p class="card-text">** после переключения кошелька или сети в Метамаске всегда перегржайте страницу</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">3. Работа со смарт-контрактом.</h5>
+        <p class="card-text">
+          Когда уже есть задеплоенный контракт, можно подключиться к нему (в этом случае байткод уже не нужен) - вставьте в поле вода адрес контракта,
+          полученный на предыдущем этапе:
+        </p>
+        <pre class="prettyprint">
+          $('#initContractFromAddressBtn').click(() => {
+            try {
+              const address = $('#contractAddressInput')[0].value;      // Считываем адрес
+              if (!address || !Web3.utils.checkAddressChecksum(address)) { throw Error('Wrong address format!') };
+              myContract = new w3.eth.Contract(abi, address);           // Создаём новый экземпляр
+              $('#connectedContractAddress a')[0].innerText = myContract.options.address;
+              $('#connectedContractAddress a')[0].href = 'https://rinkeby.etherscan.io/address/' + myContract.options.address;
+            } catch (err) { alert(err.message); }
+          })
+        </pre>
+        <p>
+          <input type="text" id="contractAddressInput" size="60" maxlength="42"/>
+          <button id="initContractFromAddressBtn">Подключиться к контракту</button>
+          <p class="card-text" id="connectedContractAddress">
+            <i>Contract address: </i>
+            <b><a target="_blank"></a></b>
+            <button class="_saveAddressToLocalStorage">Сохранить адрес контракта</button>
+          </p>
+        </p>
+        <p class="card-text">
+            Для начала давайте попробуем перевести немного токенов на какой-нибудь адрес (напоминаю, после деплоя у нас их ровно сто). <br>
+            Посмотрите на интерфейс базового класса нашего смарт-контракта (файл ERC20TokenInterface.sol):
+        </p>
+        <pre class="prettyprint">
+          contract ERC20TokenInterface{
+            function allowance(address owner, address spender) external view returns (uint);
+            function transferFrom(address from, address to, uint value) external returns (bool);
+            function approve(address spender, uint value) external returns (bool);
+            function totalSupply() external view returns (uint);
+            function balanceOf(address who) external view returns (uint);
+            function transfer(address to, uint value) external returns (bool);
+
+            event Transfer(address indexed from, address indexed to, uint value);
+            event Approval(address indexed owner, address indexed spender, uint value);
+          }
+        </pre>
+        <p class="card-text">
+          Ивенты отложим для следующего раздела и остановимся на методах, в частности нас интересует функция transfer.
+          Модификатор external обозначает, что метод можно вызывать извне и, как видите,
+          им помечены все методы, перечисленные в интерфейсе, что логично. View - методы помечены модификатором
+          view, у transfer его нет, значит при его вызове будет происходить запись данных в блокчейн.
+          Теперь важный момент - в Solidity нет дробных чисел, поэтому перед записью в блокчейн чисел,
+          которые могут оказаться не целочисленными, их предварительно домножают на 10 в степени 18. Если вы посмотрите на
+          конструктор нашего смарт-контракта в файле VendingToken.sol, то увидите, что наши 100 токенов перед записью домножились
+          на это значение. Поэтому нам придётся убирать 18 нулей при чтении данных и добавлять столько же при записи.
+        </p>
+        <p class="card-text">
+          Еще нам пригодятся view-методы totalSuply и balanceOf, первый из которых возвращает изначальное количество выпущенных токенов (в нашем случае 100),
+          а второй - баланс токенов на выбранном кошельке. В отличае от send(), метод call() возвращает обычный промис:
+        </p>
+        <pre class="prettyprint">
+            // SEND TOKENS
+            $('#sendTokensBtn').click(() => {
+              try {
+                const targetAddress = $('#sendTokensToInput')[0].value;
+                const amount = $('#sendTokensAmount')[0].value;
+                const pEvent = sendTokens(targetAddress, amount);
+                pEvent.on('error', (error) => { throw Error(error.mesage) });
+                pEvent.on('transactionHash', (hash) => { $('#sendTokensSpinner').addClass('spin'); });
+                pEvent.then((success) => { alert(`Успешный перевод ${amount} токенов.`); resetSendTokenEffects(); });
+                $('#sendTokensBtn')[0].disabled = true;
+              } catch (err) { alert(err.message); resetSendTokenEffects(); }
+            })
+
+            // CHECK SELF BALANCE
+            $('#checkTokensBalanceSelfBtn').click(async() => {
+              $('#checkTokensBalanceSelfAddress')[0].value = myAddress;
+              $('#checkTokensBalanceSelfValue')[0].innerText = await getTokensAmount(myAddress);
+            })
+
+            // CHECK TARGET BALANCE
+            $('#checkTokensBalanceBtn').click(async() => {
+              const address = $('#checkTokensBalanceAddress')[0].value;
+              $('#checkTokensBalanceValue')[0].innerText = await getTokensAmount(address);
+            })
+
+            // UTILITES
+
+            // Read balance of tokens in selected wallet
+            async function getTokensAmount(address) {
+              try {
+                const amount = await myContract.methods.balanceOf(address.checkAddress()).call();
+                return amount/1e18;
+              } catch (err) { alert(err.message) }
+            }
+
+            // Send tokens from current wallet to target wallet
+            function sendTokens(targetAddress, amount) {
+              try {
+                const value = amount*1e18;
+                const transaction = myContract.methods.transfer(targetAddress.checkAddress(), value);
+                return transaction.send({from: myAddress});
+              } catch (err) { alert(err.message) }
+            }
+        </pre>
+        <p class="card-text">
+          Зарегистрируйте в Метамаске второй кошелёк и попробуйте поперебрасывать туда-обратно токены:
+        </p>
+        <p class="cardd-text">
+          <button class="_connectToSavedAddress">Использовать сохранённый адрес контракта</button>
+          <b><a target="_blank"></a></b>
+        </p>
+        <p class="cardd-text">
+          <input type="text" id="checkTokensBalanceSelfAddress" placeholder="address" size="60" maxlength="42" readonly/>
+          <button id="checkTokensBalanceSelfBtn">Проверить свой баланс</button>
+          <span id="checkTokensBalanceSelfValue" class="text-bold"></span>
+        </p>
+        <p class="cardd-text">
+          <input type="text" id="checkTokensBalanceAddress" placeholder="address" size="60" maxlength="42"/>
+          <button id="checkTokensBalanceBtn">Проверить баланс контрагента</button>
+          <span id="checkTokensBalanceValue" class="text-bold"></span>
+        </p>
+        <p class="cardd-text">
+          <input type="text" id="sendTokensToInput" placeholder="address" size="60" maxlength="42"/>
+          <input type="text" id="sendTokensAmount" placeholder="amount" max=100>
+          <button id="sendTokensBtn">Отправить токены</button>
+          <img id="sendTokensSpinner" src="./assets/cool-spinner.gif" class="spinner" alt="spinner">
+        </p>
+
+        <p class="card-text">
+            Посмотрим теперь баланс на этом адресе и прочитаем 3-х символьное название токена:
+        </p>
+        <p class="card-text">
+            Переведем 0.1 эфира на смарт контракт:
+        </p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">5. События смарт-контракта.</h5>
       </div>
     </div>
   </div>

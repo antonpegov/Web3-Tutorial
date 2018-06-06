@@ -1,7 +1,7 @@
-# Web3 v1.0 Tutorial 
+# Web3 v1.0 Intractive Tutorial 
 
-## Installation on the local machine:
+## Install it on local machine:
 
 Clone this repo and CD in created folder.
 
-Run index.html file localy or with your local web-server, for example https://github.com/johnpapa/lite-server
+Run index.html file locally or with your local web-server, for example https://github.com/johnpapa/lite-server
