@@ -17,7 +17,7 @@ $('#sendTokensBtn').click(() => {
     const amount = $('#sendTokensAmount')[0].value;
     const pEvent = sendTokens(targetAddress, amount);
     pEvent.on('error', (error) => { throw Error(error.mesage) });
-    pEvent.on('transactionHash', (hash) => { $('#sendTokensSpinner').addClass('spin'); });
+    pEvent.on('transactionHash', (hash) => onTokenTransferTransactionHashReceived(hash));
     pEvent.then((success) => { alert(`Успешный перевод ${amount} токенов.`); resetSendTokenEffects(); });
     $('#sendTokensBtn')[0].disabled = true;
   } catch (err) { alert(err.message); resetSendTokenEffects(); }
@@ -51,12 +51,44 @@ $('._connectToSavedAddress').click((e) => {
   a.href = 'https://rinkeby.etherscan.io/address/' + myContract.options.address;
 })
 
-// UTILITES
+// READ TOKEN SYMBOL
+$('#checkTokenNameBtn').click(() => {
+  myContract.methods.symbol().call()
+    .then((symbol) => $('#checkTokensNameValue')[0].innerText = symbol);
+})
+
+// READ DIVIDENDS VALUE
+$('#checkDividendsSelfBtn').click(() => {
+  getDividendsAmount(myAddress)
+    .then((amount) => $('#checkDividendsSelfValue')[0].innerText = amount + ' ETH');
+})
+
+// WITHDRAW DIVIDENDS
+$('#getDividendsBtn').click(async() => {
+  const amount = $('#getDividendsInput')[0].value;
+  const maxAmount = await getDividendsAmount(myAddress);
+  if(!amount || amount <= 0 || amount > maxAmount) { throw Error('Некорректное значение!'); return; }
+  const pEvent = withdrawDividends(amount);
+  pEvent.on('error', (error) => { throw Error(error.mesage); resetDividendsWithdrawalEffects() });
+  pEvent.on('transactionHash', (hash) => onDividendsWithdrawalTransactionHashReceived(hash));
+  pEvent.then((success) => { alert(`Успешное снятие ${amount} ETH.`); resetDividendsWithdrawalEffects()} );
+  $('#getDividendsBtn')[0].disabled = true;
+})
+
+// SMART-CONTRACT REQUESTS
 
 // Read balance of tokens in selected wallet
 async function getTokensAmount(address) {
   try {
     const amount = await myContract.methods.balanceOf(address.checkAddress()).call();
+    return amount/1e18;
+  } catch (err) { alert(err.message) }
+}
+
+// Read balance of dividends in selected wallet
+async function getDividendsAmount(address) {
+  try {
+    const amount = await myContract.methods.dividendsRightsOf(address.checkAddress()).call();
     return amount/1e18;
   } catch (err) { alert(err.message) }
 }
@@ -70,6 +102,14 @@ function sendTokens(targetAddress, amount) {
   } catch (err) { alert(err.message) }
 }
 
+// Withdraw dividends to current wallet
+function withdrawDividends(amount) {
+  try {
+    const transaction = myContract.methods.releaseDividendsRights(amount*1e18);
+    return transaction.send({from: myAddress});
+  } catch (err) { alert(err.message) }
+}
+
 // Utility method for validating Ethereum address format
 String.prototype.checkAddress = function() {
   if (!Web3.utils.isAddress(this)) {
@@ -77,8 +117,28 @@ String.prototype.checkAddress = function() {
   } else { return this.toString() }
 }
 
-// Reset specific visual effects
+// TOKEN VISUAL EFFECTS
+
 function resetSendTokenEffects() {
-  $('#sendTokensBtn')[0].disabled = true;
+  $('#sendTokensBtn')[0].disabled = false;
   $('#sendTokensSpinner').removeClass('spin');
+}
+
+function onTokenTransferTransactionHashReceived(hash) {
+  $('#sendTokensSpinner').addClass('spin');
+  $('#sendTokensHash a')[0].innerText = hash; // Показываем идентификатор транзакции
+  $('#sendTokensHash a')[0].href = 'https://rinkeby.etherscan.io/tx/' + hash;
+}
+
+// DIVIDENDS VISUAL EFFECTS
+
+function resetDividendsWithdrawalEffects() {
+  $('#getDividendsBtn')[0].disabled = false;
+  $('#getDividendsSpinner').removeClass('spin');
+}
+
+function onDividendsWithdrawalTransactionHashReceived(hash) {
+  $('#getDividendsSpinner').addClass('spin');
+  $('#getDividendsHash a')[0].innerText = hash; // Показываем идентификатор транзакции
+  $('#getDividendsHash a')[0].href = 'https://rinkeby.etherscan.io/tx/' + hash;
 }
