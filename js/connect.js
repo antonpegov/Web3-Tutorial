@@ -27,6 +27,7 @@ $('#deployBtn').click(() => {
   } catch (err) {
     resetVisualEffects();
     console.error(err);
+    alert(err.message);
   }
 })
 

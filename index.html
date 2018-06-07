@@ -58,8 +58,11 @@
     <div class="card">
       <div class="card-body">
         <h5 class="card-title">2. Настройка</h5>
-        <p class="card-text">Для начального сетапа вы можете использовать непосредственно данный туториал, мы специально сделали его максимально простым. Итак, первым делом установите <a href="https://metamask.io/">Metamask</a>.</p>
-        <p class="card-text">Используя Метамаск, зарегистрируйте себе новый кошелек Ethereum или подключите уже имеющийся, импортировав его секретный ключ. </p>
+        <p class="card-text">
+          Для начального сетапа своего проекта вы можете использовать непосредственно данный туториал, мы специально сделали его максимально простым.
+          Итак, первым делом установите <a href="https://metamask.io/">Metamask</a>.
+          Используя Метамаск, зарегистрируйте себе новый кошелек Ethereum или подключите уже имеющийся, импортировав его секретный ключ.
+        </p>
         <p class="card-text">Импортируйте удобным для вас способом библиотеку <a href="https://github.com/ethereum/web3.js/tree/1.0">web3</a>. Мы использовали этот <a href="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/">CDN</a>.</p>
         <p class="card-text">Теперь давайте подключимся к сети Ethereum, для чего "попросим" Метамаск поделиться с нами своим провайдером: </p>
         <pre class="prettyprint">
@@ -283,7 +286,11 @@
             }
         </pre>
         <p class="card-text">
-          Зарегистрируйте в Метамаске второй кошелёк и попробуйте поперебрасывать туда-обратно токены:
+          Зарегистрируйте в Метамаске второй кошелёк и попробуйте, переключаясь между кошельками,
+          поперебрасывать туда-обратно токены. Благодаря тому, что мы используем домножение на 10 в 18 степени,
+          можно использовать дробные значения. Не забывайте перегружать страницу после смены кошелька.
+          Для того, чтобы каждый раз не копипастить адресс контракта, его
+          после первого подключения можно сохранить в локальном хранилище и использовать после обновления страницы.
         </p>
         <p class="cardd-text">
           <button class="_connectToSavedAddress">Использовать сохранённый адрес контракта</button>
@@ -305,14 +312,94 @@
           <button id="sendTokensBtn">Отправить токены</button>
           <img id="sendTokensSpinner" src="./assets/cool-spinner.gif" class="spinner" alt="spinner">
         </p>
+        <p class="card-text" id="sendTokensHash"><i>Transaction hash: </i><b><a target="_blank"></a></b></p>
+        <p class="card-text">
+          Если вы перейдёте по ссылке и посмотрите на содержимое транзакции, то заметите что это на самом деле
+          просто зашиврованый вызов метода transfer: первые 4 байта - это сигнатура метода и далее по 32 байта на
+          значение каждого атрибута. Давайте прочитаем 3-х символьное название токена. Оно задано в файле VendingToken.sol так:
+          <b>string public symbol = "VEND";</b> Как уже упомяналось, для всех публичных свойств контракта во время компиляции
+          автоматически создаются одноимённые view-методы, поэтому запрос значения свойства контракта выглядит как обычный вызов view-метода:
+        </p>
+        <pre class="prettyprint">
+          $('#checkTokenNameBtn').click(() => {
+            myContract.methods.symbol().call()
+              .then((symbol) => $('#checkTokensNameValue')[0].innerText = symbol);
+          })
+        </pre>
+        <p class="card-text">
+          <button id="checkTokenNameBtn">Прочитать название</button>
+          <span id="checkTokensNameValue" class="text-bold"></span>
+        </p>
+        <p class="card-text">
+          Пришло время использовать дивидендный функционал нашего смарт-контракта. Он описан в файле ERC20DividendsTokenInterface.sol :
+        </p>
+        <pre class="prettyprint">
+          import "./ERC20TokenInterface.sol";
 
+          contract ERC20DividendsTokenInterface is ERC20TokenInterface {
+            event ReleaseDividendsRights(address indexed _for, uint256 value);
+            event AcceptDividends(uint256 value);
+
+            function dividendsRightsOf(address _owner) external view returns (uint balance);
+            function releaseDividendsRights(uint _value) external returns(bool);
+          }
+        </pre>
         <p class="card-text">
-            Посмотрим теперь баланс на этом адресе и прочитаем 3-х символьное название токена:
+          Метод <b>dividendsRightsOf</b> позволяет проверить накопившиеся дивиденды,
+          а <b>releaseDividendsRights</b> - эти дивиденды вывести на свой кошелёк.
+          Но для начала давайте переведём на наш смарт-контракт немного эфира - для этого в Метамаске
+          нажмите "Отправить", укажите в графе "Получатель" адрес смарт-контракта и,
+          если кнопка отправки не активизировалась, поднимите в настройках цену на газ.
+        </p>
+        <pre class="prettyprint">
+            // READ DIVIDENDS VALUE
+            $('#checkDividendsSelfBtn').click(() => {
+              getDividendsAmount(myAddress)
+                .then((amount) => $('#checkDividendsSelfValue')[0].innerText = amount + ' ETH');
+            })
+
+            // WITHDRAW DIVIDENDS
+            $('#getDividendsBtn').click(async() => {
+              const amount = $('#getDividendsInput')[0].value;
+              const maxAmount = await getDividendsAmount(myAddress);
+              if(!amount || amount <= 0 || amount > maxAmount) { throw Error('Некорректное значение!'); return; }
+              const pEvent = withdrawDividends(amount);
+              pEvent.on('error', (error) => { throw Error(error.mesage); resetDividendsWithdrawalEffects() });
+              pEvent.on('transactionHash', (hash) => onDividendsWithdrawalTransactionHashReceived(hash));
+              pEvent.then((success) => { alert(`Успешное снятие ${amount} ETH.`); resetDividendsWithdrawalEffects()} );
+              $('#getDividendsBtn')[0].disabled = true;
+            })
+
+            // SMART-CONTRACT REQUESTS
+
+            // Read balance of dividends in selected wallet
+            async function getDividendsAmount(address) {
+              try {
+                const amount = await myContract.methods.dividendsRightsOf(address.checkAddress()).call();
+                return amount/1e18;
+              } catch (err) { alert(err.message) }
+            }
+
+            // Withdraw dividends to current wallet
+            function withdrawDividends(amount) {
+              try {
+                const transaction = myContract.methods.releaseDividendsRights(amount*1e18);
+                return transaction.send({from: myAddress});
+              } catch (err) { alert(err.message) }
+            }
+        </pre>
+        <p class="card-text">
+          <button id="checkDividendsSelfBtn">Проверить дивиденды</button>
+          <span id="checkDividendsSelfValue" class="text-bold"></span>
         </p>
         <p class="card-text">
-            Переведем 0.1 эфира на смарт контракт:
+          <input type="text" id="getDividendsInput" size="30" maxlength="10"/>
+          <button id="getDividendsBtn">Снять дивиденды</button>
+          <img id="getDividendsSpinner" src="./assets/cool-spinner.gif" class="spinner" alt="spinner">
         </p>
+        <p class="card-text" id="getDividendsHash"><i>Transaction hash: </i><b><a target="_blank"></a></b></p>
       </div>
+
     </div>
     <div class="card">
       <div class="card-body">
