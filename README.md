@@ -1,6 +1,6 @@
 # Web3 v1.0 Intractive Tutorial 
 
-## Install it on local machine:
+## To install on local machine:
 
 Clone this repo and CD in created folder.
 
